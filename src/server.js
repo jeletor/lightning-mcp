@@ -19,6 +19,27 @@ const NOSTR_RELAYS = (process.env.LIGHTNING_RELAYS || '').split(',').filter(Bool
 const relays = NOSTR_RELAYS.length ? NOSTR_RELAYS : RELAYS;
 
 // ---------------------------------------------------------------------------
+// Input validation helpers
+// ---------------------------------------------------------------------------
+
+const LIGHTNING_ADDRESS_RE = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+const NOSTR_PUBKEY_RE = /^[0-9a-f]{64}$/i;
+
+function validateLightningAddress(address) {
+  if (!LIGHTNING_ADDRESS_RE.test(address)) {
+    return `Invalid Lightning address format: "${address}". Expected user@domain.com`;
+  }
+  return null;
+}
+
+function validateNostrPubkey(pubkey) {
+  if (!NOSTR_PUBKEY_RE.test(pubkey)) {
+    return `Invalid Nostr pubkey format: "${pubkey}". Expected 64-character hex string.`;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Lazy singletons
 // ---------------------------------------------------------------------------
 
@@ -101,6 +122,14 @@ server.registerTool(
         };
       }
 
+      // Check invoice expiry
+      if (decoded && decoded.timeExpireDate && decoded.timeExpireDate < Date.now() / 1000) {
+        return {
+          content: [{ type: 'text', text: `Refused: invoice has expired (expired at ${new Date(decoded.timeExpireDate * 1000).toISOString()}).` }],
+          isError: true
+        };
+      }
+
       const result = await wallet.payInvoice(invoice);
       return {
         content: [{
@@ -168,6 +197,9 @@ server.registerTool(
   },
   async ({ address, amountSats, maxSats }) => {
     try {
+      const addrErr = validateLightningAddress(address);
+      if (addrErr) return { content: [{ type: 'text', text: addrErr }], isError: true };
+
       const wallet = getWallet();
       const limit = maxSats || MAX_SATS;
       if (amountSats > limit) {
@@ -300,6 +332,9 @@ server.registerTool(
   },
   async ({ pubkey }) => {
     try {
+      const pkErr = validateNostrPubkey(pubkey);
+      if (pkErr) return { content: [{ type: 'text', text: pkErr }], isError: true };
+
       const attestations = await queryAttestations(pubkey, relays);
       const result = await calculateTrustScore(attestations, new Map(), { maxDepth: 0 });
       const summary = {
@@ -376,6 +411,9 @@ server.registerTool(
   },
   async ({ address }) => {
     try {
+      const addrErr = validateLightningAddress(address);
+      if (addrErr) return { content: [{ type: 'text', text: addrErr }], isError: true };
+
       const result = await resolveLightningAddress(address);
       return {
         content: [{
@@ -404,6 +442,16 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   process.stderr.write('lightning-mcp server running on stdio\n');
+
+  // Graceful shutdown
+  const shutdown = async (signal) => {
+    process.stderr.write(`\n${signal} received, shutting down…\n`);
+    try { if (_wallet) await _wallet.close(); } catch (e) { /* ignore */ }
+    try { if (_directory) await _directory.close(); } catch (e) { /* ignore */ }
+    process.exit(0);
+  };
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
 main().catch(err => {
