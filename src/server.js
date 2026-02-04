@@ -41,7 +41,7 @@ function getDirectory() {
 
 const server = new McpServer({
   name: 'lightning-mcp',
-  version: '0.1.0',
+  version: require('../package.json').version,
 }, {
   capabilities: {
     tools: {}
