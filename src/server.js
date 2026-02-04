@@ -134,7 +134,7 @@ server.registerTool(
     try {
       const wallet = getWallet();
       const result = await wallet.createInvoice({
-        amount: amountSats,
+        amountSats,
         description: description || `lightning-mcp invoice for ${amountSats} sats`
       });
       return {
@@ -261,7 +261,7 @@ server.registerTool(
         if (!reqHeaders['Content-Type']) reqHeaders['Content-Type'] = 'application/json';
       }
 
-      const res = await tollFetch(url, fetchOpts, { wallet, maxSats: limit });
+      const res = await tollFetch(url, { ...fetchOpts, wallet, maxSats: limit });
 
       const contentType = res.headers?.get?.('content-type') || '';
       let responseBody;

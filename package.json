@@ -1,6 +1,6 @@
 {
   "name": "lightning-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server giving AI agents Lightning payments, L402 API access, trust verification, and service discovery. Free, open-source, NWC-native.",
   "main": "src/server.js",
   "bin": {
@@ -41,8 +41,8 @@
     "@modelcontextprotocol/sdk": "^1.25.3",
     "agent-discovery": "^0.1.0",
     "ai-wot": "^0.5.0",
-    "lightning-agent": "^0.3.0",
-    "lightning-toll": "^0.1.0",
+    "lightning-agent": "^0.3.2",
+    "lightning-toll": "^0.1.1",
     "zod": "^3.25.0"
   },
   "engines": {
