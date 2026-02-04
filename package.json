@@ -1,6 +1,6 @@
 {
   "name": "lightning-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server giving AI agents Lightning payments, L402 API access, trust verification, and service discovery. Free, open-source, NWC-native.",
   "main": "src/server.js",
   "bin": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node test/run.js"
+    "test": "node test/run.js && node test/functional.js"
   },
   "keywords": [
     "mcp",

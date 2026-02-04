@@ -223,7 +223,7 @@ console.log('\n📦 Package metadata');
 
 const pkg = require('../package.json');
 assert(pkg.name === 'lightning-mcp', `Package name: ${pkg.name}`);
-assert(pkg.version === '0.1.0', `Version: ${pkg.version}`);
+assert(pkg.version === '0.1.1', `Version: ${pkg.version}`);
 assert(pkg.bin && pkg.bin['lightning-mcp'], 'Has bin entry');
 assert(pkg.license === 'MIT', 'MIT license');
 assert(pkg.dependencies['@modelcontextprotocol/sdk'], 'Depends on MCP SDK');
