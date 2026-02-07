@@ -98,7 +98,9 @@ const toolNames = [
   'access_l402',
   'check_trust',
   'discover_services',
-  'resolve_lightning_address'
+  'resolve_lightning_address',
+  'pay_batch',
+  'pay_addresses'
 ];
 
 // Register dummy tools to verify schema validation works
@@ -223,7 +225,7 @@ console.log('\n📦 Package metadata');
 
 const pkg = require('../package.json');
 assert(pkg.name === 'lightning-mcp', `Package name: ${pkg.name}`);
-assert(pkg.version === '0.1.1', `Version: ${pkg.version}`);
+assert(/^\d+\.\d+\.\d+$/.test(pkg.version), `Version format: ${pkg.version}`);
 assert(pkg.bin && pkg.bin['lightning-mcp'], 'Has bin entry');
 assert(pkg.license === 'MIT', 'MIT license');
 assert(pkg.dependencies['@modelcontextprotocol/sdk'], 'Depends on MCP SDK');

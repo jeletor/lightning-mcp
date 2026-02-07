@@ -12,6 +12,8 @@ Any AI agent that speaks [MCP](https://modelcontextprotocol.io) (Claude, GPT, et
 | `pay_invoice` | Pay a BOLT11 Lightning invoice |
 | `create_invoice` | Create an invoice to receive payment |
 | `pay_lightning_address` | Send sats to user@domain.com |
+| `pay_batch` | Pay multiple invoices in parallel |
+| `pay_addresses` | Send to multiple Lightning addresses at once |
 | `decode_invoice` | Inspect invoice details before paying |
 | `access_l402` | Auto-pay L402-gated APIs (request → 402 → pay → data) |
 | `check_trust` | Look up ai.wot trust score for any agent |

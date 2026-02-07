@@ -434,6 +434,91 @@ server.registerTool(
   }
 );
 
+// ---- pay_batch ------------------------------------------------------------
+
+server.registerTool(
+  'pay_batch',
+  {
+    title: 'Pay Multiple Invoices',
+    description: 'Pay multiple Lightning invoices in parallel. Useful for distributing payments to multiple recipients.',
+    inputSchema: {
+      invoices: z.array(z.string()).min(1).max(20).describe('Array of BOLT11 invoice strings (max 20)'),
+      concurrency: z.number().int().min(1).max(5).optional().describe('Max parallel payments (default: 3)')
+    }
+  },
+  async ({ invoices, concurrency = 3 }) => {
+    try {
+      const wallet = getWallet();
+      const result = await wallet.payBatch(invoices, { concurrency });
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            successCount: result.successCount,
+            failedCount: result.failedCount,
+            totalSats: result.totalSats,
+            results: result.results.map(r => ({
+              success: r.success,
+              amountSats: r.amountSats,
+              error: r.error || undefined
+            }))
+          }, null, 2)
+        }]
+      };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Batch payment error: ${err.message}` }], isError: true };
+    }
+  }
+);
+
+// ---- pay_addresses --------------------------------------------------------
+
+server.registerTool(
+  'pay_addresses',
+  {
+    title: 'Pay Multiple Lightning Addresses',
+    description: 'Pay multiple Lightning addresses in parallel. Each payment specifies address and amount.',
+    inputSchema: {
+      payments: z.array(z.object({
+        address: z.string().describe('Lightning address (user@domain.com)'),
+        amountSats: z.number().int().positive().describe('Amount to send'),
+        comment: z.string().optional().describe('Optional payment comment')
+      })).min(1).max(10).describe('Array of payments (max 10)'),
+      concurrency: z.number().int().min(1).max(3).optional().describe('Max parallel payments (default: 2)')
+    }
+  },
+  async ({ payments, concurrency = 2 }) => {
+    try {
+      // Validate all addresses first
+      for (const p of payments) {
+        const err = validateLightningAddress(p.address);
+        if (err) return { content: [{ type: 'text', text: err }], isError: true };
+      }
+      
+      const wallet = getWallet();
+      const result = await wallet.payAddresses(payments, { concurrency });
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            successCount: result.successCount,
+            failedCount: result.failedCount,
+            totalSats: result.totalSats,
+            results: result.results.map(r => ({
+              address: r.address,
+              success: r.success,
+              amountSats: r.amountSats,
+              error: r.error || undefined
+            }))
+          }, null, 2)
+        }]
+      };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Batch address payment error: ${err.message}` }], isError: true };
+    }
+  }
+);
+
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
